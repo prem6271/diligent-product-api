@@ -1,7 +1,6 @@
 const express = require('express')
 const cors = require('cors')
 const router = require('./routes/productRouter.js')
-
 const app = express()
 
 // middleware

@@ -1,84 +1,33 @@
-// ----------------------------------------------------------------------------
-// Copyright (c) Microsoft Corporation.
-// Licensed under the MIT license.
-// ----------------------------------------------------------------------------
-import dotenv from 'dotenv';
-dotenv.config()
+const axios = require("axios");
 
-let config = "";
-
-function getAuthHeader(accessToken) {
-
-    // Function to append Bearer against the Access Token
-    return "Bearer ".concat(accessToken);
-}
-
-function validateConfig() {
-
-    // Validation function to check whether the Configurations are available in the config.json file or not
-
-    let guid = require("guid");
-
-    if (!config.authenticationMode) {
-        return "AuthenticationMode is empty. Please choose MasterUser or ServicePrincipal in config.json.";
+const getLatestCurrencyData = async () => {
+  console.log("Calling External API...")
+  var data;
+  let config = {
+    method: 'get',
+    maxBodyLength: Infinity,
+    url: 'https://api.freecurrencyapi.com/v1/latest',
+    headers: {
+      'apikey': 'fca_live_3qnybIOuplN9EAGEh4vG8CVzidh6411sGd3V7HZK'
+    },
+    params: {
+      'currencies': 'EUR,CAD,GBP'
     }
+  };
 
-    if (config.authenticationMode.toLowerCase() !== "masteruser" && config.authenticationMode.toLowerCase() !== "serviceprincipal") {
-        return "AuthenticationMode is wrong. Please choose MasterUser or ServicePrincipal in config.json";
-    }
+  await axios.request(config)
+    .then((response) => {
+      console.log("Latest Currency DATA from API => " + JSON.stringify(response.data));
+      data = response.data;
+    })
+    .catch((error) => {
+      console.log(error);
+    });
 
-    if (!config.clientId) {
-        return "ClientId is empty. Please register your application as Native app in https://dev.powerbi.com/apps and fill Client Id in config.json.";
-    }
+  return data;
+};
 
-    if (!guid.isGuid(config.clientId)) {
-        return "ClientId must be a Guid object. Please register your application as Native app in https://dev.powerbi.com/apps and fill Client Id in config.json.";
-    }
 
-    if (!config.reportId) {
-        return "ReportId is empty. Please select a report you own and fill its Id in config.json.";
-    }
-
-    if (!guid.isGuid(config.reportId)) {
-        return "ReportId must be a Guid object. Please select a report you own and fill its Id in config.json.";
-    }
-
-    if (!config.workspaceId) {
-        return "WorkspaceId is empty. Please select a group you own and fill its Id in config.json.";
-    }
-
-    if (!guid.isGuid(config.workspaceId)) {
-        return "WorkspaceId must be a Guid object. Please select a workspace you own and fill its Id in config.json.";
-    }
-
-    if (!config.authorityUrl) {
-        return "AuthorityUrl is empty. Please fill valid AuthorityUrl in config.json.";
-    }
-
-    if (config.authenticationMode.toLowerCase() === "masteruser") {
-        if (!config.pbiUsername || !config.pbiUsername.trim()) {
-            return "PbiUsername is empty. Please fill Power BI username in config.json.";
-        }
-
-        if (!config.pbiPassword || !config.pbiPassword.trim()) {
-            return "PbiPassword is empty. Please fill password of Power BI username in config.json.";
-        }
-    } else if (config.authenticationMode.toLowerCase() === "serviceprincipal") {
-        if (!config.clientSecret || !config.clientSecret.trim()) {
-            return "ClientSecret is empty. Please fill Power BI ServicePrincipal ClientSecret in config.json.";
-        }
-
-        if (!config.tenantId) {
-            return "TenantId is empty. Please fill the TenantId in config.json.";
-        }
-
-        if (!guid.isGuid(config.tenantId)) {
-            return "TenantId must be a Guid object. Please select a workspace you own and fill its Id in config.json.";
-        }
-    }
-}
-
-export {
-    getAuthHeader,
-    validateConfig
+module.exports = {
+  getLatestCurrencyData
 }
