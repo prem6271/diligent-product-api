@@ -7,14 +7,6 @@ const utils = require('../utils.js');
 // create main Model
 const Product = db.products
 var currencyData;
-/*
-(async () => {
-    currencyData = await getLatestCurrencyData;
-    console.log("currencyData => " + JSON.stringify(currencyData))
-})().catch(err => {
-    console.error(err);
-});
-*/
 
 
 // 1. create product
@@ -115,7 +107,6 @@ const getMostViewedProducts = async (req, res) => {
 
     res.status(200).send(product)
 }
-
 
 // 4. delete product by id
 
