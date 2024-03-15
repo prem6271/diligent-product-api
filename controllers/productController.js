@@ -27,8 +27,6 @@ const addProduct = async (req, res) => {
 
     const product = await Product.create(info)
     res.status(200).send(product)
-    console.log(product)
-
 }
 
 // 2. get single product
