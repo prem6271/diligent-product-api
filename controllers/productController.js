@@ -93,7 +93,8 @@ const getMostViewedProducts = async (req, res) => {
             },
             deleted: 0
         },
-        order: [['viewCount', 'DESC']]
+        order: [['viewCount', 'DESC']],
+        limit: req.body.numberOfProducts || 5
 
     })
 
