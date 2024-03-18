@@ -6,14 +6,14 @@ jest.mock('../models/productModel_mock.js', () => ({
     findAll: jest.fn(),
 }));
 
-describe("getMostViewedProducts", () => {
+describe("testInvalidCurrency", () => {
     let req, res, next;
 
     beforeEach(() => {
         req = {
             body: {
                 numberOfProducts: 5,
-                currency: 'USD', // Default currency
+                currency: "USD", // Default currency
             },
         };
         res = {
@@ -26,36 +26,9 @@ describe("getMostViewedProducts", () => {
     afterEach(() => {
         jest.clearAllMocks();
     });
-    /*
-        test('should get most viewed products in USD currency', async () => {
-            const productData = [
-                { id: 1, viewCount: 10, price: 20, deleted: 0 },
-                { id: 2, viewCount: 15, price: 30, deleted: 0 },
-            ];
-    
-            const currencyData = {
-                data: {
-                    USD: 1,
-                },
-            };
-    
-            utils.getLatestCurrencyData.mockResolvedValue(currencyData);
-            require('../models/productModel.js').findAll.mockResolvedValue(productData);
-    
-    
-            await getMostViewedProducts(req, res, next);
-    
-            expect(res.status).toHaveBeenCalledWith(200);
-             expect(res.send).toHaveBeenCalledWith([
-                 { id: 1, viewCount: 10, price: 20 },
-                 { id: 2, viewCount: 15, price: 30 },
-             ]);
-           
-        });
-    */
 
     test('should handle invalid currency', async () => {
-        req.body.currency = 'XYZ'; // Invalid currency
+        req.body.currency = "XYZ"; // Invalid currency
 
         await getMostViewedProducts(req, res, next);
 
@@ -64,17 +37,14 @@ describe("getMostViewedProducts", () => {
     });
 })
 
-
-
-
 describe("getOneProduct", () => {
     let req, res, next;
 
     beforeEach(() => {
         req = {
             body: {
-                numberOfProducts: 5,
-                currency: 'USD', // Default currency
+                currency: "USD", // Default currency
+                name: "iPhone"
             },
         };
         res = {
@@ -89,10 +59,9 @@ describe("getOneProduct", () => {
     });
 
 
-    test('Should Pull one product', async () => {
+    test('Should Pull given product', async () => {
         await getOneProduct(req, res, next);
         
-        req.body.name = "iPhone"
         await expect(res.status).toHaveBeenCalledWith(200);
     });
 })

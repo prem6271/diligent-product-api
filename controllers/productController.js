@@ -3,6 +3,7 @@ var Sequelize = require('sequelize');
 const Op = Sequelize.Op;
 const currencies = "USD CAD EUR GBP";
 const utils = require('../utils.js');
+const logger = require("../middleware/logger")
 
 // create main Model
 const Product = db.products
@@ -15,7 +16,8 @@ const addProduct = async (req, res) => {
     console.log('Create New product');
 
     if (!req.body.name || !req.body.price) {
-        res.status(200).send({ "Message": "Product Name or Product Price is Missing" })
+        res.status(400).send({ "Message": "Product Name or Product Price is Missing" })
+        logger.log("info", "Product Name or Product Price is Missing");
         return;
     }
 
@@ -25,50 +27,83 @@ const addProduct = async (req, res) => {
         description: req.body.description ? req.body.description : null
     }
 
-    const product = await Product.create(info)
-    res.status(200).send(product)
+    let p = await Product.findOne({ where: { name: info.name, deleted: false } })
+    if (p) {
+        res.status(400).send({ "Message": "Product Name already exists" })
+        logger.log("info", "Product Name already exists");
+        return;
+    }
+    try {
+        const product = await Product.create(info)
+        res.status(200).send(product)
+        logger.log("info", "Product Created");
+    }
+    catch (e) {
+        res.status(500).send({ "Message": "Create Product Failed" })
+        logger.log("error", e);
+        return;
+    }
 }
+
 
 // 2. get single product
 
 const getOneProduct = async (req, res) => {
     console.log("Get One Product");
     var currencyBase = 1;
+    var product;
     if (!req.body.name) {
-        res.status(200).send({ "Message": "Product Name is missing" })
+        res.status(400).send({ "Message": "Product Name is missing" })
+        logger.log("error", "Product Name is Missing");
         return;
     }
 
     if (req.body.currency && !currencies.includes(req.body.currency)) {
-        res.status(200).send({ "Message": "Not a Valid Currency" })
+        res.status(400).send({ "Message": "Not a Valid Currency " + req.body.currency })
+        logger.log("error", "Not a Valid Currency " + req.body.currency);
         return;
     }
-    if (req.body.currency != "USD") {
-        currencyData = await utils.getLatestCurrencyData();
-        currencyBase = currencyData.data[req.body.currency];
+
+    if (req.body.currency && req.body.currency != "USD") {
+        try {
+            currencyData = await utils.getLatestCurrencyData();
+            currencyBase = currencyData.data[req.body.currency];
+            logger.log("info", "Converted Currency to" + req.body.currency);
+        } catch (e) {
+            logger.log("error", "Error Converting Currency" + e);
+        }
     } else {
         currencyBase = 1;
+        logger.log("info", "Using Default Currency i.e. USD");
     }
 
     let name = req.body.name
 
-    let p = await Product.findOne({ where: { name: name, deleted: false } })
-    if (p) {
-        p.viewCount++;
-        let updatedProduct = await Product.update({ viewCount: p.viewCount }, {
+    try {
+        product = await Product.findOne({ where: { name: name, deleted: false } })
+
+    } catch (e) {
+        res.status(500).send({ "Message": "Get Product Failed" })
+        logger.log("error", e);
+        return;
+    }
+    if (product && product != undefined) {
+        product.viewCount++;
+        await Product.update({ viewCount: product.viewCount }, {
             where: {
                 name: name,
             },
         });
+        product.price = product.price * currencyBase;
+        logger.log("info", "Product fetched = " + product.name)
+        res.status(200).send(product)
+
+    } else {
+        logger.log("error", "Product Not found");
+        res.status(404).send({ "Message": "Product Not found" })
+        return
     }
 
-    let product = await Product.findOne({ where: { name: name, deleted: false } })
-    product.price = product.price * currencyBase;
-    if (product) {
-        res.status(200).send(product)
-    } else {
-        res.status(200).send({ "Message": "Product Not found" })
-    }
 }
 
 // 3. get most viewed products
