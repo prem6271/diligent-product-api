@@ -32,8 +32,8 @@ describe("testInvalidCurrency", () => {
 
         await getMostViewedProducts(req, res, next);
 
-        await expect(res.status).toHaveBeenCalledWith(200);
-        await expect(res.send).toHaveBeenCalledWith({ Message: 'Not a Valid Currency' });
+        await expect(res.status).toHaveBeenCalledWith(400);
+        await expect(res.send).toHaveBeenCalledWith({ Message: 'Not a Valid Currency XYZ' });
     });
 })
 
